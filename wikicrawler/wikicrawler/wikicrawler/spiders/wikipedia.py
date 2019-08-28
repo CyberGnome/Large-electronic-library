@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import hashlib
+import os
 from urllib.parse import urljoin
 
-import html2text
 import scrapy
 from scrapy import Request
 from bs4 import BeautifulSoup
+
+FILES_STORAGE = 'tmp'
 
 
 class WikipediaSpider(scrapy.Spider):
@@ -44,14 +47,62 @@ class WikipediaSpider(scrapy.Spider):
                 if url not in self.items_pages:
                     yield Request(url, callback=self.parse_item)
 
-            #subcategories_hrefs = response.xpath(subcategories_page_path).extract() # Todo
-            #for subcategory_href in subcategories_hrefs: # Todo
-            #    yield response.follow(subcategory_href, callback=self.parse) # Todo
+            #subcategories_hrefs = response.xpath(subcategories_page_path).extract()
+            #for subcategory_href in subcategories_hrefs:
+            #    yield response.follow(subcategory_href, callback=self.parse)
 
     def parse_item(self, response):
         self.items_pages.add(response.request.url)
         item_url = response.request.url
-        self.parse_context(response)
+        item_title, item_bodyfile, categories = self.parse_context(response)
+
+        categories_names = categories.keys()
+
+        for category in categories_names:
+            yield response.follow(categories.get(category), callback=self.parse)
+
+    def parse_context(self, response):
+        title_path = '//*[@id="firstHeading"]//text()'
+        body_path = '/html/body/div[3]/div[3]/div[4]/div'
+        categories_path = '//*[@id="mw-normal-catlinks"]//*/a'
+
+        title = response.xpath(title_path).extract_first()
+        body = response.xpath(body_path).extract_first()
+        body_file = os.path.join(FILES_STORAGE,
+                                 "%s.html" % hashlib.md5(response.request.url.encode('utf-8')).hexdigest())
+
+        body = self.parse_text(body)
+
+        categories_block = response.xpath(categories_path)
+        categories = {}
+        for category in categories_block:
+            categories.update({category.xpath('text()').extract_first(): category.xpath('@href').extract_first()})
+
+        f = open(body_file, "w")
+        f.write(body)
+        f.close()
+
+        return title, body_file, categories
+
+    def parse_text(self, text):
+        soup = BeautifulSoup(text, 'html.parser')
+        body = soup.find("div", {"class": "mw-parser-output"})
+
+        result = []
+
+        for item in body:
+            if item.name in self.added_tags:
+                checked_item = self.filter_text(item)
+                if checked_item:
+                    result.append(str(checked_item))
+                continue
+            if item.name == 'div':
+                if item.attrs.get('id') == 'toc':
+                    checked_item = self.filter_toc(item)
+                    if checked_item:
+                        result.append(str(checked_item))
+
+        return BeautifulSoup("\n".join(result), 'html.parser').prettify()
 
     def filter_text(self, tag):
         edit_sections = tag.findAll('span', {'class': 'mw-editsection'})
@@ -83,36 +134,4 @@ class WikipediaSpider(scrapy.Spider):
             if not title:
                 el.extract()
 
-        return tag
-
-    def clear_text(self, text):
-        soup = BeautifulSoup(text, 'html.parser')
-        body = soup.find("div", {"class": "mw-parser-output"})
-
-        result = []
-        for item in body:
-            if item.name in self.added_tags:
-                checked_item = self.filter_text(item)
-                if checked_item:
-                    result.append(str(checked_item))
-            if item.name == 'div':
-                id = item.attrs.get('id')
-                if id == 'toc':
-                    checked_item = self.filter_toc(item)
-                    if checked_item:
-                        result.append(str(checked_item))
-
-        return BeautifulSoup("\n".join(result), 'html.parser').prettify()
-
-    def parse_context(self, response):
-        title_path = '//*[@id="firstHeading"]//text()'
-        body_path = '/html/body/div[3]/div[3]/div[4]/div'
-        
-        title = response.xpath(title_path).extract_first()
-        body = response.xpath(body_path).extract_first()
-
-        print(title)
-        body = self.clear_text(body)
-        f = open("%s.html" % title, "w")
-        f.write(body)
-        f.close()
+        return toc
