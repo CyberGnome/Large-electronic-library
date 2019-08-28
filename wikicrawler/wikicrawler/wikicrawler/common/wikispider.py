@@ -8,6 +8,7 @@ from scrapy import Request
 
 from wikicrawler.settings import FILES_STORAGE
 from wikicrawler.common.bs_parser import BS4Parser
+from wikicrawler.common.exceptions import CrawlException
 
 
 class WikiSpider(scrapy.Spider, BS4Parser):
@@ -23,7 +24,8 @@ class WikiSpider(scrapy.Spider, BS4Parser):
         'См. также',
         'Примечания',
         'Литература',
-        'Ссылки'
+        'Ссылки',
+        'Источники'
     ]
 
     added_tags = [
@@ -45,19 +47,28 @@ class WikiSpider(scrapy.Spider, BS4Parser):
                 if url not in self.items_pages:
                     yield Request(url, callback=self.parse_item)
 
-            #subcategories_hrefs = response.xpath(subcategories_page_path).extract()
-            #for subcategory_href in subcategories_hrefs:
-            #    yield response.follow(subcategory_href, callback=self.parse)
+            subcategories_hrefs = response.xpath(subcategories_page_path).extract()
+            for subcategory_href in subcategories_hrefs:
+                yield response.follow(subcategory_href, callback=self.parse)
 
     def parse_item(self, response):
         self.items_pages.add(response.request.url)
 
         item_url = response.request.url
-        item_title, item_bodyfile, categories = self.parse_context(response)
 
-        categories_names = categories.keys()
-        for category in categories_names:
-            yield response.follow(categories.get(category), callback=self.parse)
+        categories = dict()
+        try:
+            item_title, item_bodyfile, categories = self.parse_context(response)
+        except CrawlException as exception:
+            print(str(exception))
+            if exception.errors == exception.FILE_ALREADY_EXISTS:
+                categories = exception.saved_data
+        else:
+            print("ALL O'KEY!!!")
+        finally:
+            categories_names = categories.keys()
+            for category in categories_names:
+                yield response.follow(categories.get(category), callback=self.parse)
 
     def parse_context(self, response):
         title_path = '//*[@id="firstHeading"]//text()'
@@ -68,13 +79,17 @@ class WikiSpider(scrapy.Spider, BS4Parser):
         body = response.xpath(body_path).extract_first()
         body_file = os.path.join(self.storage,
                                  "%s.html" % hashlib.md5(response.request.url.encode('utf-8')).hexdigest())
-
-        body = self.bs4parse_text(body)
-
         categories_block = response.xpath(categories_path)
         categories = {}
         for category in categories_block:
             categories.update({category.xpath('text()').extract_first(): category.xpath('@href').extract_first()})
+
+        if os.path.exists(body_file):
+            raise CrawlException("File \"%s\" already exists!" % body_file,
+                                 CrawlException.FILE_ALREADY_EXISTS,
+                                 categories)
+
+        body = self.bs4parse_text(body)
 
         f = open(body_file, "w")
         f.write(body)
