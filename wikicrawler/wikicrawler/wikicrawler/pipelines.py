@@ -8,6 +8,7 @@ import os
 
 from wikicrawler.common.bs_parser import BS4Parser
 from wikicrawler.settings import HTML_FILES_STORAGE
+from wikicrawler.common.exceptions import CrawlException
 
 
 class DuplicatesPipeline(object):
@@ -24,7 +25,13 @@ class EditRawFilePipeline(object):
     @staticmethod
     def __clean_content(content):
         bs4p = BS4Parser()
-        return bs4p.delete_blank_paragraphs(content)
+
+        content = bs4p.delete_blank_paragraphs(content)
+
+        if bs4p.file_is_fit(content):
+            return content
+        else:
+            return None
 
     def process_item(self, item, spider):
         title = item['title']
@@ -34,10 +41,15 @@ class EditRawFilePipeline(object):
             content = c_file.read()
 
         content = self.__clean_content(("<h1>%s</h1>\n" % title) + content)
+        if content is None:
+            os.remove(content_file)
+            raise CrawlException("File does not fit", CrawlException.FILE_DOSNT_FIT)
 
         new_file = os.path.join(HTML_FILES_STORAGE, os.path.split(content_file)[1])
         with open(new_file, 'w') as new_file:
             new_file.write(content)
+
+        os.remove(content_file)
 
         item['content_file'] = new_file
         return item

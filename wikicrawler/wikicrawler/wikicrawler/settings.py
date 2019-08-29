@@ -95,6 +95,6 @@ AUTOTHROTTLE_DEBUG = False
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 FILES_STORAGE = 'files'
-BODY_FILES_STORAGE = os.path.join(FILES_STORAGE, 'raw')
+BODY_FILES_STORAGE = os.path.join(FILES_STORAGE, 'tmp')
 HTML_FILES_STORAGE = os.path.join(FILES_STORAGE, 'html')
 PDF_FILES_STORAGE = os.path.join(FILES_STORAGE, 'pdf')

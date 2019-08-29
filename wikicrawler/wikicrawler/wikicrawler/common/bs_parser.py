@@ -64,6 +64,7 @@ class BS4Parser:
 
         titles = ['h1', 'h2', 'h3',
                   'h4', 'h5', 'h6']
+
         prev = None
 
         for line in soup:
@@ -76,3 +77,23 @@ class BS4Parser:
             prev.extract()
 
         return soup.prettify()
+
+    @staticmethod
+    def file_is_fit(content):
+        titles = ['h1', 'h2', 'h3',
+                  'h4', 'h5', 'h6']
+
+        text = 'p'
+        title_c, text_c = 0, 0
+
+        soup = BeautifulSoup(content, 'html.parser')
+        for line in soup:
+            if line.name in titles:
+                title_c += 1
+            elif line.name == text:
+                text_c += 1
+
+        if title_c - 1 > text_c:
+            return False
+        else:
+            return True
