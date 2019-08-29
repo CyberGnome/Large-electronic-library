@@ -8,7 +8,9 @@
 import scrapy
 
 
-class WikicrawlerItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class WikiArticleItem(scrapy.Item):
+    url = scrapy.Field()
+    title = scrapy.Field()
+    content_file = scrapy.Field()
+    categories = scrapy.Field()
+

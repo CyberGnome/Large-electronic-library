@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 import scrapy
 from scrapy import Request
 
+from wikicrawler.items import WikiArticleItem
 from wikicrawler.settings import FILES_STORAGE
 from wikicrawler.common.bs_parser import BS4Parser
 from wikicrawler.common.exceptions import CrawlException
@@ -56,19 +57,24 @@ class WikiSpider(scrapy.Spider, BS4Parser):
 
         item_url = response.request.url
 
-        categories = dict()
+        item_categories = dict()
         try:
-            item_title, item_bodyfile, categories = self.parse_context(response)
+            item_title, item_bodyfile, item_categories = self.parse_context(response)
         except CrawlException as exception:
-            print(str(exception))
             if exception.errors == exception.FILE_ALREADY_EXISTS:
-                categories = exception.saved_data
+                item_categories = exception.saved_data
         else:
-            print("ALL O'KEY!!!")
+            article_item = WikiArticleItem()
+
+            article_item['url'] = item_url
+            article_item['title'] = item_url
+            article_item['content_file'] = item_bodyfile
+            article_item['categories'] = item_categories.keys()
+
+            yield article_item
         finally:
-            categories_names = categories.keys()
-            for category in categories_names:
-                yield response.follow(categories.get(category), callback=self.parse)
+            for category in item_categories.keys():
+                yield response.follow(item_categories.get(category), callback=self.parse)
 
     def parse_context(self, response):
         title_path = '//*[@id="firstHeading"]//text()'
