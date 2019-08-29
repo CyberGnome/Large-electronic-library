@@ -7,13 +7,13 @@ import scrapy
 from scrapy import Request
 
 from wikicrawler.items import WikiArticleItem
-from wikicrawler.settings import FILES_STORAGE
+from wikicrawler.settings import BODY_FILES_STORAGE
 from wikicrawler.common.bs_parser import BS4Parser
 from wikicrawler.common.exceptions import CrawlException
 
 
 class WikiSpider(scrapy.Spider, BS4Parser):
-    storage = FILES_STORAGE
+    storage = BODY_FILES_STORAGE
     name = 'wiki'
     allowed_domains = ['wikipedia.org']
     start_urls = []
@@ -67,7 +67,7 @@ class WikiSpider(scrapy.Spider, BS4Parser):
             article_item = WikiArticleItem()
 
             article_item['url'] = item_url
-            article_item['title'] = item_url
+            article_item['title'] = item_title
             article_item['content_file'] = item_bodyfile
             article_item['categories'] = item_categories.keys()
 

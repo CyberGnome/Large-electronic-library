@@ -8,6 +8,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os
 
 BOT_NAME = 'wikicrawler'
 
@@ -64,22 +65,26 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'wikicrawler.pipelines.WikicrawlerPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'wikicrawler.pipelines.DuplicatesPipeline': 1,
+    'wikicrawler.pipelines.CreateCategoriesPipeline': 10,
+    'wikicrawler.pipelines.EditRawFilePipeline': 20,
+    'wikicrawler.pipelines.Convert2PdfPipeline': 30,
+    'wikicrawler.pipelines.Save2DatabasePipeline': 40,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = True
 # The initial download delay
-#AUTOTHROTTLE_START_DELAY = 5
+AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
-#AUTOTHROTTLE_MAX_DELAY = 60
+AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-#AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
+AUTOTHROTTLE_TARGET_CONCURRENCY = 2.0
 # Enable showing throttling stats for every response received:
-#AUTOTHROTTLE_DEBUG = False
+AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
@@ -89,4 +94,7 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-FILES_STORAGE = 'tmp'
+FILES_STORAGE = 'files'
+BODY_FILES_STORAGE = os.path.join(FILES_STORAGE, 'raw')
+HTML_FILES_STORAGE = os.path.join(FILES_STORAGE, 'html')
+PDF_FILES_STORAGE = os.path.join(FILES_STORAGE, 'pdf')

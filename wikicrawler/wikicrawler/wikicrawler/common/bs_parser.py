@@ -57,3 +57,22 @@ class BS4Parser:
                 el.extract()
 
         return toc
+
+    @staticmethod
+    def delete_blank_paragraphs(content):
+        soup = BeautifulSoup(content, 'html.parser')
+
+        titles = ['h1', 'h2', 'h3',
+                  'h4', 'h5', 'h6']
+        prev = None
+
+        for line in soup:
+            if prev:
+                if prev.name in titles and prev.name == line.name:
+                    prev.extract()
+            prev = line
+
+        if prev.name in titles:
+            prev.extract()
+
+        return soup.prettify()
