@@ -69,8 +69,7 @@ ITEM_PIPELINES = {
     'wikicrawler.pipelines.DuplicatesPipeline': 1,
     'wikicrawler.pipelines.CreateCategoriesPipeline': 10,
     'wikicrawler.pipelines.EditRawFilePipeline': 20,
-    'wikicrawler.pipelines.Convert2PdfPipeline': 30,
-    'wikicrawler.pipelines.Save2DatabasePipeline': 40,
+    'wikicrawler.pipelines.Save2DatabasePipeline': 30,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -98,3 +97,12 @@ FILES_STORAGE = 'files'
 BODY_FILES_STORAGE = os.path.join(FILES_STORAGE, 'tmp')
 HTML_FILES_STORAGE = os.path.join(FILES_STORAGE, 'html')
 PDF_FILES_STORAGE = os.path.join(FILES_STORAGE, 'pdf')
+
+DATABASE = {
+    'drivername': 'postgres',
+    'host': os.getenv('DATABASE_HOSTNAME', 'localhost'),
+    'port': os.getenv('DATABASE_PORT', '5432'),
+    'username': os.getenv('DATABASE_USERNAME', 'wikicrawler'),
+    'password': os.getenv('DATABASE_PASSWORD', 'qwerty123'),
+    'database': os.getenv('DATABASE_DB_NAME', 'l-e-l')
+}

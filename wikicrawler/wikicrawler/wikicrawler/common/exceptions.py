@@ -3,7 +3,8 @@
 
 class CrawlException(Exception):
     FILE_ALREADY_EXISTS = 1
-    FILE_DOSNT_FIT = 2
+    FILE_DOESNT_FIT = 2
+    DATABASE_TABLE_DOESNT_CREATE = 3
 
     def __init__(self, message, errors, saved_data=None):
         super(CrawlException, self).__init__(message)
