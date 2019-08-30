@@ -16,11 +16,6 @@ class DuplicatesPipeline(object):
         return item
 
 
-class Convert2PdfPipeline(object):
-    def process_item(self, item, spider):
-        return item
-
-
 class EditRawFilePipeline(object):
     @staticmethod
     def __clean_content(content):
@@ -43,7 +38,7 @@ class EditRawFilePipeline(object):
         content = self.__clean_content(("<h1>%s</h1>\n" % title) + content)
         if content is None:
             os.remove(content_file)
-            raise CrawlException("File does not fit", CrawlException.FILE_DOSNT_FIT)
+            raise CrawlException("File does not fit", CrawlException.FILE_DOESNT_FIT)
 
         new_file = os.path.join(HTML_FILES_STORAGE, os.path.split(content_file)[1])
         with open(new_file, 'w') as new_file:
