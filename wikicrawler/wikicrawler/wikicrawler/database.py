@@ -3,8 +3,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 
-import settings
-from models import DeclarativeBase
+from wikicrawler.wikicrawler import settings
+from wikicrawler.wikicrawler.models import DeclarativeBase
 
 
 class Database:
@@ -13,13 +13,7 @@ class Database:
         self.engine = None
 
     def db_connect(self):
-        try:
-            self.engine = create_engine(self.__database_url)
-        except Exception as error:
-            print("Can`t create engine: %s" % str(error))
+        self.engine = create_engine(self.__database_url)
 
     def create_tables(self):
-        try:
-            DeclarativeBase.metadata.create_all(self.engine)
-        except Exception as error:
-            print("Can`t create tables: %s" % str(error))
+        DeclarativeBase.metadata.create_all(self.engine)

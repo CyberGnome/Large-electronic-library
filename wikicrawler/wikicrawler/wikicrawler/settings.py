@@ -104,5 +104,5 @@ DATABASE = {
     'port': os.getenv('DATABASE_PORT', '5432'),
     'username': os.getenv('DATABASE_USERNAME', 'wikicrawler'),
     'password': os.getenv('DATABASE_PASSWORD', 'qwerty123'),
-    'database': os.getenv('DATABASE_DB_NAME', 'l-e-l')
+    'database': os.getenv('DATABASE_DB_NAME', 'l_e_l')
 }

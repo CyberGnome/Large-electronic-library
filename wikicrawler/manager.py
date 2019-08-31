@@ -2,7 +2,7 @@
 
 import sys
 
-from wikicrawler.cmds.database import init_db, reset_db
+from cmds.database import init_db, reset_db
 
 
 def help_fn():

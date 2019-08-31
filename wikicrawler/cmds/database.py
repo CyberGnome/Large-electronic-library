@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
-from database import Database
-from exceptions import CrawlException
+import os
+
+from wikicrawler.wikicrawler.database import Database
 
 
 def init_db():
     db = Database()
-    db.db_connect()
-    if db.engine:
+
+    try:
+        db.db_connect()
+        print("Connect to database!")
         db.create_tables()
-    else:
-        raise CrawlException("Tables was not created!", CrawlException.DATABASE_TABLE_DOESNT_CREATE)
+        print("Tables was created success!")
+    except Exception as exception:
+        raise exception
 
 
 def reset_db():
-    pass
-
+    os.system('cmds/reset_db.sh')
